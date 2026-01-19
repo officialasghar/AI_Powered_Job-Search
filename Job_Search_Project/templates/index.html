@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Job Search</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .search-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .search-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .search-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .filters-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .filters-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .filters-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .clear-filters {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+
+        .results-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .results-count {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading i {
+            font-size: 2rem;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .job-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .job-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .job-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .job-company {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .relevance-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .relevance-high {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .relevance-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .relevance-low {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .job-location {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+
+        .job-summary {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .job-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a6fd8;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .no-results i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .search-form {
+                grid-template-columns: 1fr;
+            }
+            
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .job-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .job-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-search"></i> AI-Powered Job Search</h1>
+            <p>Find your dream job with intelligent search and AI-enhanced results</p>
+        </div>
+
+        <div class="search-section">
+            <form class="search-form" id="searchForm">
+                <div class="form-group">
+                    <label for="query">Job Title or Keywords</label>
+                    <input type="text" id="query" name="query" placeholder="e.g., Frontend Developer, Python Engineer" required>
+                </div>
+                <div class="form-group">
+                    <label for="location">Location (Optional)</label>
+                    <input type="text" id="location" name="location" placeholder="e.g., New York, Remote">
+                </div>
+                <div class="form-group">
+                    <label for="datePosted">Date Posted</label>
+                    <select id="datePosted" name="datePosted">
+                        <option value="">All Time</option>
+                        <option value="today">Today</option>
+                        <option value="3days">Last 3 Days</option>
+                        <option value="week">Last Week</option>
+                        <option value="month">Last Month</option>
+                    </select>
+                </div>
+                <button type="submit" class="search-btn" id="searchBtn">
+                    <i class="fas fa-search"></i> Search Jobs
+                </button>
+            </form>
+        </div>
+
+        <div class="filters-section" id="filtersSection" style="display: none;">
+            <div class="filters-header">
+                <h3 class="filters-title">Filter Results</h3>
+                <button class="clear-filters" onclick="clearFilters()">Clear All</button>
+            </div>
+            <div class="filters-grid">
+                <div class="form-group">
+                    <label for="filterLocation">Location</label>
+                    <input type="text" id="filterLocation" placeholder="Filter by location">
+                </div>
+                <div class="form-group">
+                    <label for="filterRelevance">Relevance</label>
+                    <select id="filterRelevance">
+                        <option value="">All Relevance</option>
+                        <option value="high">High Relevance</option>
+                        <option value="medium">Medium Relevance</option>
+                        <option value="low">Low Relevance</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filterTopResults">Top Results</label>
+                    <select id="filterTopResults">
+                        <option value="">Show All</option>
+                        <option value="3">Top 3</option>
+                        <option value="5">Top 5</option>
+                        <option value="10">Top 10</option>
+                        <option value="15">Top 15</option>
+                        <option value="20">Top 20</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="results-section" id="resultsSection" style="display: none;">
+            <div class="results-header">
+                <div class="results-count" id="resultsCount"></div>
+            </div>
+            <div id="resultsContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentJobs = [];
+        let allJobs = []; // Store all jobs from search
+
+        document.getElementById('searchForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            await performSearch();
+        });
+
+        // Add event listeners for filters
+        let filterTimeout;
+        document.getElementById('filterLocation').addEventListener('input', function() {
+            clearTimeout(filterTimeout);
+            filterTimeout = setTimeout(applyFilters, 300); // 300ms delay for typing
+        });
+        document.getElementById('filterRelevance').addEventListener('change', applyFilters);
+        document.getElementById('filterTopResults').addEventListener('change', applyFilters);
+
+        async function performSearch() {
+            const query = document.getElementById('query').value;
+            const location = document.getElementById('location').value;
+            const datePosted = document.getElementById('datePosted').value;
+            const searchBtn = document.getElementById('searchBtn');
+
+            if (!query.trim()) {
+                alert('Please enter a job search query');
+                return;
+            }
+
+            // Show loading state
+            searchBtn.disabled = true;
+            searchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Searching...';
+            
+            showResultsSection();
+            showLoading();
+
+            try {
+                const params = new URLSearchParams({
+                    q: query
+                });
+                
+                if (location.trim()) {
+                    params.append('location', location);
+                }
+                
+                if (datePosted) {
+                    params.append('date_posted', datePosted);
+                }
+
+                const response = await fetch(`/api/search-jobs?${params}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    allJobs = data.jobs || [];
+                    currentJobs = [...allJobs]; // Copy all jobs to current jobs
+                    displayResults(currentJobs, allJobs.length);
+                    showFiltersSection();
+                } else {
+                    showError(data.error || 'An error occurred while searching for jobs');
+                }
+            } catch (error) {
+                showError('Network error. Please check your connection and try again.');
+            } finally {
+                searchBtn.disabled = false;
+                searchBtn.innerHTML = '<i class="fas fa-search"></i> Search Jobs';
+            }
+        }
+
+        function displayResults(jobs, totalFound = null) {
+            const container = document.getElementById('resultsContainer');
+            const countElement = document.getElementById('resultsCount');
+
+            if (jobs.length === 0) {
+                container.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-search"></i>
+                        <h3>No jobs found</h3>
+                        <p>Try adjusting your search criteria or location</p>
+                    </div>
+                `;
+                countElement.textContent = '0 results found';
+                return;
+            }
+
+            // Show filtered vs total results
+            if (totalFound && totalFound > jobs.length) {
+                countElement.textContent = `${jobs.length} of ${totalFound} jobs shown`;
+            } else {
+                countElement.textContent = `${jobs.length} job${jobs.length !== 1 ? 's' : ''} found`;
+            }
+
+            container.innerHTML = jobs.map(job => `
+                <div class="job-card">
+                    <div class="job-header">
+                        <div>
+                            <h3 class="job-title">${escapeHtml(job.title)}</h3>
+                            <p class="job-company">${escapeHtml(job.company)}</p>
+                        </div>
+                        <span class="relevance-badge relevance-${job.relevance_score || 'medium'}">
+                            ${job.relevance_score || 'medium'} relevance
+                        </span>
+                    </div>
+                    <p class="job-location">
+                        <i class="fas fa-map-marker-alt"></i> ${escapeHtml(job.location)}
+                    </p>
+                    <p class="job-summary">${escapeHtml(job.summary || 'Job details available')}</p>
+                    <div class="job-actions">
+                        <a href="${job.link}" target="_blank" class="btn btn-primary">
+                            <i class="fas fa-external-link-alt"></i> Apply Now
+                        </a>
+                        <a href="${job.original_link}" target="_blank" class="btn btn-secondary">
+                            <i class="fas fa-info-circle"></i> View Details
+                        </a>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function applyFilters() {
+            const location = document.getElementById('filterLocation').value;
+            const relevance = document.getElementById('filterRelevance').value;
+            const topResults = document.getElementById('filterTopResults').value;
+
+            const filters = {};
+            if (location) filters.location = location;
+            if (relevance) filters.relevance_score = relevance;
+            if (topResults) filters.top_results = topResults;
+
+            try {
+                const response = await fetch('/api/filter-jobs', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        jobs: allJobs, // Always send original jobs, not current filtered jobs
+                        filters: filters
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    currentJobs = data.jobs || [];
+                    displayResults(currentJobs, allJobs.length);
+                } else {
+                    showError(data.error || 'Error applying filters');
+                }
+            } catch (error) {
+                showError('Error applying filters');
+            }
+        }
+
+        function clearFilters() {
+            document.getElementById('filterLocation').value = '';
+            document.getElementById('filterRelevance').value = '';
+            document.getElementById('filterTopResults').value = '';
+            currentJobs = [...allJobs]; // Reset to all jobs
+            displayResults(currentJobs, allJobs.length);
+        }
+
+        function showResultsSection() {
+            document.getElementById('resultsSection').style.display = 'block';
+        }
+
+        function showFiltersSection() {
+            document.getElementById('filtersSection').style.display = 'block';
+        }
+
+        function showLoading() {
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = `
+                <div class="loading">
+                    <i class="fas fa-spinner"></i>
+                    <p>Searching for jobs...</p>
+                </div>
+            `;
+        }
+
+        function showError(message) {
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-triangle"></i> ${escapeHtml(message)}
+                </div>
+            `;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
